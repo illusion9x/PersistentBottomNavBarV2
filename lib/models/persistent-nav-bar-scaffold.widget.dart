@@ -234,7 +234,7 @@ class _PersistentTabScaffoldState extends State<PersistentTabScaffold> {
         children: <Widget>[
           content,
           MediaQuery(
-            data: existingMediaQuery.copyWith(textScaleFactor: 1),
+            data: existingMediaQuery.copyWith(textScaler: TextScaler.noScaling),
             child: Align(
               alignment: Alignment.bottomCenter,
               child: widget.tabBar,

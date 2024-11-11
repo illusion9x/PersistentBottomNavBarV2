@@ -30,14 +30,6 @@ class PersistentTabView extends PersistentTabViewBase {
   /// Will confine the NavBar's items in the safe area defined by the device.
   final bool confineInSafeArea;
 
-  /// Handles android back button actions. Defaults to `true`.
-  ///
-  /// Action based on scenarios:
-  /// 1. If you are on the first tab with all screens popped of the given tab, the app will close.
-  /// 2. If you are on another tab with all screens popped of that given tab, you will be switched to first tab.
-  /// 3. If there are screens pushed on the selected tab, a screen will pop on a respective back button press.
-  final bool handleAndroidBackButtonPress;
-
   /// Bottom margin of the screen.
   final double? bottomScreenMargin;
 
@@ -46,9 +38,6 @@ class PersistentTabView extends PersistentTabViewBase {
 
   /// Preserves the state of each tab's screen. `true` by default.
   final bool stateManagement;
-
-  /// If you want to perform a custom action on Android when exiting the app, you can write your logic here. Returns context of the selected screen.
-  final Future<bool> Function(BuildContext?)? onWillPop;
 
   /// Returns the context of the selected tab.
   final Function(BuildContext?)? selectedTabScreenContext;
@@ -91,9 +80,7 @@ class PersistentTabView extends PersistentTabViewBase {
     bool popAllScreensOnTapAnyTabs = false,
     PopActionScreensType popActionScreens = PopActionScreensType.all,
     this.confineInSafeArea = true,
-    this.onWillPop,
     this.stateManagement = true,
-    this.handleAndroidBackButtonPress = true,
     ItemAnimationProperties? itemAnimationProperties,
     this.hideNavigationBar,
     this.screenTransitionAnimation = const ScreenTransitionAnimation(),
@@ -121,11 +108,9 @@ class PersistentTabView extends PersistentTabViewBase {
           floatingActionButton: floatingActionButton,
           resizeToAvoidBottomInset: resizeToAvoidBottomInset,
           bottomScreenMargin: bottomScreenMargin,
-          onWillPop: onWillPop,
           isCustomWidget: false,
           confineInSafeArea: confineInSafeArea,
           stateManagement: stateManagement,
-          handleAndroidBackButtonPress: handleAndroidBackButtonPress,
           hideNavigationBar: hideNavigationBar,
           screenTransitionAnimation: screenTransitionAnimation,
         ) {
@@ -166,9 +151,7 @@ class PersistentTabView extends PersistentTabViewBase {
     CustomWidgetRouteAndNavigatorSettings routeAndNavigatorSettings =
         const CustomWidgetRouteAndNavigatorSettings(),
     this.confineInSafeArea = true,
-    this.onWillPop,
     this.stateManagement = true,
-    this.handleAndroidBackButtonPress = true,
     this.hideNavigationBar,
     this.screenTransitionAnimation = const ScreenTransitionAnimation(),
   }) : super(
@@ -189,10 +172,8 @@ class PersistentTabView extends PersistentTabViewBase {
           popAllScreensOnTapOfSelectedTab: popAllScreensOnTapOfSelectedTab,
           navBarHeight: navBarHeight,
           bottomScreenMargin: bottomScreenMargin,
-          onWillPop: onWillPop,
           confineInSafeArea: confineInSafeArea,
           stateManagement: stateManagement,
-          handleAndroidBackButtonPress: handleAndroidBackButtonPress,
           hideNavigationBar: hideNavigationBar,
           screenTransitionAnimation: screenTransitionAnimation,
           isCustomWidget: true,
@@ -266,14 +247,6 @@ class PersistentTabViewBase extends StatefulWidget {
   /// Will confine the NavBar's items in the safe area defined by the device.
   final bool? confineInSafeArea;
 
-  /// Handles android back button actions. Defaults to `true`.
-  ///
-  /// Action based on scenarios:
-  /// 1. If the you are on the first tab with all screens popped of the given tab, the app will close.
-  /// 2. If you are on another tab with all screens popped of that given tab, you will be switched to first tab.
-  /// 3. If there are screens pushed on the selected tab, a screen will pop on a respective back button press.
-  final bool? handleAndroidBackButtonPress;
-
   /// Bottom margin of the screen.
   final double? bottomScreenMargin;
 
@@ -290,9 +263,6 @@ class PersistentTabViewBase extends StatefulWidget {
 
   /// Preserves the state of each tab's screen. `true` by default.
   final bool? stateManagement;
-
-  /// If you want to perform a custom action on Android when exiting the app, you can write your logic here.
-  final Future<bool> Function(BuildContext)? onWillPop;
 
   /// Screen transition animation properties when switching tabs.
   final ScreenTransitionAnimation? screenTransitionAnimation;
@@ -323,7 +293,6 @@ class PersistentTabViewBase extends StatefulWidget {
     this.floatingActionButton,
     this.margin,
     this.confineInSafeArea,
-    this.handleAndroidBackButtonPress,
     this.bottomScreenMargin,
     this.resizeToAvoidBottomInset,
     this.stateManagement,
@@ -343,7 +312,6 @@ class PersistentTabViewBase extends StatefulWidget {
     this.popAllScreensOnTapOfSelectedTab = true,
     this.popAllScreensOnTapAnyTabs,
     this.popActionScreens,
-    this.onWillPop,
     this.hideNavigationBarWhenKeyboardShows,
     this.itemAnimationProperties,
     this.isCustomWidget,
@@ -695,36 +663,8 @@ class _PersistentTabViewState extends State<PersistentTabView> {
           (widget.items == null ? widget.itemCount ?? 0 : widget.items!.length),
           null);
     }
-    if (widget.handleAndroidBackButtonPress || widget.onWillPop != null) {
-      return WillPopScope(
-        onWillPop:
-            !widget.handleAndroidBackButtonPress && widget.onWillPop != null
-                ? () => widget.onWillPop!(_contextList[_controller!.index])
-                : () async {
-                    if (_controller!.index == 0 &&
-                        !Navigator.canPop(_contextList.first!)) {
-                      if (widget.handleAndroidBackButtonPress &&
-                          widget.onWillPop != null) {
-                        return widget.onWillPop!(_contextList.first);
-                      }
-                      return true;
-                    } else {
-                      if (Navigator.canPop(_contextList[_controller!.index]!)) {
-                        Navigator.pop(_contextList[_controller!.index]!);
-                      } else {
-                        if (widget.onItemSelected != null) {
-                          widget.onItemSelected!(0);
-                        }
-                        _controller!.index = 0;
-                      }
-                      return false;
-                    }
-                  },
-        child: navigationBarWidget(),
-      );
-    } else {
-      return navigationBarWidget();
-    }
+
+    return navigationBarWidget();
   }
 
   void popAllScreens() {
